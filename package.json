@@ -1,0 +1,22 @@
+{
+  "name": "regexplain",
+  "displayName": "regexplain",
+  "description": "Explain a selected regular expression in plain language and test it live against sample text.",
+  "version": "1.0.0",
+  "publisher": "juninmd",
+  "license": "MIT",
+  "engines": { "vscode": "^1.75.0" },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      { "command": "regexplain.explain", "title": "regexplain: Explicar regex selecionado" }
+    ],
+    "keybindings": [
+      { "command": "regexplain.explain", "key": "ctrl+alt+r", "when": "editorHasSelection" }
+    ]
+  },
+  "scripts": { "test": "bun test" },
+  "devDependencies": { "@types/bun": "latest" }
+}
