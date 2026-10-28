@@ -1,7 +1,10 @@
 const vscode = require("vscode");
 const { explain, parseLiteral } = require("./src/explain");
 
-function webviewHtml(pattern, tokens) {
+function webviewHtml(pattern, tokens, flags = "") {
+  // JSON inside <script>: escape "<" so a pattern containing </script> cannot break out.
+  const lit = (v) => JSON.stringify(v).replace(/</g, "\\u003c");
+  const jsFlags = flags.includes("g") ? flags : flags + "g";
   const rows = tokens
     .map(
       (t) =>
@@ -23,14 +26,13 @@ function webviewHtml(pattern, tokens) {
     <textarea id="text" rows="4" placeholder="cole um texto para testar…"></textarea>
     <div id="out"></div>
     <script>
-      const pattern = ${JSON.stringify(pattern)};
+      const pattern = ${lit(pattern)}, flags = ${lit(jsFlags)};
       const el = document.getElementById('text'), out = document.getElementById('out');
       function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
       el.addEventListener('input', () => {
         try {
-          const re = new RegExp(pattern, 'g');
           const t = el.value; let n = 0;
-          out.innerHTML = esc(t).replace(new RegExp(pattern,'g'), m => (n++, '<mark>'+esc(m)+'</mark>')) + '\\n\\n' + n + ' match(es)';
+          out.innerHTML = esc(t).replace(new RegExp(pattern, flags), m => (n++, '<mark>'+esc(m)+'</mark>')) + '\\n\\n' + n + ' match(es)';
         } catch(e){ out.textContent = 'regex inválido: ' + e.message; }
       });
     </script>
@@ -49,11 +51,11 @@ function run() {
     vscode.window.showInformationMessage("regexplain: selecione um regex (com ou sem /barras/).");
     return;
   }
-  const { source } = parseLiteral(sel);
+  const { source, flags } = parseLiteral(sel);
   const panel = vscode.window.createWebviewPanel("regexplain", "regexplain", vscode.ViewColumn.Beside, {
     enableScripts: true,
   });
-  panel.webview.html = webviewHtml(source, explain(sel));
+  panel.webview.html = webviewHtml(source, explain(sel), flags);
 }
 
 function activate(context) {
